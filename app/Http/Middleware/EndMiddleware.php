@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckIsLogged
+class EndMiddleware
 {
     /**
      * Handle an incoming request.
@@ -14,12 +14,12 @@ class CheckIsLogged
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
-    {
-        // check if user is logged
-        if (!session('user')) {
-            return redirect('/login');
-        }
-        
-        return $next($request);
+    {   
+        // Depois da requisição
+        $response = $next($request);
+
+        echo "Bye!";
+
+        return $response;
     }
 }

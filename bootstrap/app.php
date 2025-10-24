@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EndMiddleware;
+use App\Http\Middleware\StartMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,7 +13,27 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+
+        // //add em todas as rotas (antes)
+        // $middleware->prepend([
+        //     StartMiddleware::class,
+        // ]);
+
+        // //add em todas as rotas (depois)
+        // $middleware->append([
+        //     EndMiddleware::class,
+        // ]);
+
+        // Grupo antes da rota
+        $middleware->prependToGroup('correr_antes', [
+            StartMiddleware::class,
+        ]);
+
+        // Grupo depois da rota
+        $middleware->appendToGroup('correr_depoia', [
+            EndMiddleware::class,
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
