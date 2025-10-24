@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class CheckIsNotLogged
+class OnylAdmin
 {
     /**
      * Handle an incoming request.
@@ -15,11 +15,7 @@ class CheckIsNotLogged
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // check if user is not logged
-        if (session('user')) {
-            return redirect('/');
-        }
-
+        echo '>>> ADMIN <<< <br>';
         return $next($request);
     }
 }
