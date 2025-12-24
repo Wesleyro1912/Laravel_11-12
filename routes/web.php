@@ -1,17 +1,16 @@
 <?php
 
-use App\Http\Controllers\MainController;
-use App\Http\Controllers\SingleActionContoller;
-use App\Http\Controllers\UserController;
-use App\Http\Middleware\EndMiddleware;
-use App\Http\Middleware\OnylAdmin;
-use App\Http\Middleware\StartMiddleware;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Types\Relations\Role;
 
-Route::get('/', function () {
-    return view('welcome');
+
+Route::controller(MainController::class)->group(function () {
+
+    Route::get('/', 'home')->name('home');
+    Route::post('/generate-exercises', 'generateExercises')->name('generateExercises');
+    Route::get('/print-exercises', 'printExercises')->name('printExercises');
+    Route::get('/export-exercises', 'exportExercises')->name('exportExercises');
+
 });
 
 Route::match(['get', 'post'], '/match', function(Request $request){
