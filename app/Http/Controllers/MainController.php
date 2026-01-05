@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\View\View;
 
 class MainController extends Controller
@@ -77,6 +78,118 @@ class MainController extends Controller
         // prepare all the quiz
         $quiz = $this->prepareQuiz($total_questions);
 
-        dd($quiz);
+        // Store the quiz in session
+        session()->put([
+            'quiz' => $quiz,
+            'total_questions' => $total_questions,
+            'current_question' => 0,
+            'correct_answers' => 0,
+            'wrong_answers' => 0
+        ]);
+
+        return redirect()->route('game');
+    }
+
+    public function game(): View {
+
+        $quiz = session('quiz');
+        $total_questions = session('total_questions');
+
+        // índice da questão atual
+        $current_question_index = session('current_question');
+
+        // questão atual
+        $current_question = $quiz[$current_question_index];
+
+        // prepara respostas
+        $answers = $current_question['wrong_answers'];
+        $answers[] = $current_question['correct_answer'];
+
+        shuffle($answers);
+
+        return view('game')->with([
+            'country' => $current_question['country'],
+            'totalQuestions' => $total_questions,
+            'currentQuestion' => $current_question_index + 1,
+            'answers' => $answers
+        ]);
+    }
+
+    public function answer($enc_answer) {
+
+        try {
+
+           $answer = Crypt::decryptString($enc_answer);
+
+        } catch (\Throwable $th) {
+
+            return redirect()->route('game');
+
+        }
+
+        // game logic
+        $quiz = session('quiz');
+        $current_question = session('current_question');
+        $correct_answer = $quiz[$current_question]['correct_answer'];
+        $correct_answers = session('correct_answers');
+        $wrong_answers = session('wrong_answers');
+
+        if($answer == $correct_answer) {
+            $correct_answers++;
+            $quiz[$current_question]['correct'] = true;
+        } else {
+            $wrong_answers++;
+            $quiz[$current_question]['correct'] = false;
+        }
+
+        // update session
+        session()->put([
+            'quiz' => $quiz,
+            'correct_answers' => $correct_answers,
+            'wrong_answers' => $wrong_answers
+        ]);
+
+        // prepare dat to show the correct answer
+        $data = [
+            'country' => $quiz[$current_question]['country'],
+            'correct_answers' => $correct_answers,
+            'choice_answers' => $answer,
+            'currentQuestion' => $current_question,
+            'totalQuestions' => session('total_questions')
+        ];
+
+        return view('answer_result')->with($data);
+    }
+
+    public function next_question() {
+
+        $current_question = session('current_question');
+        $total_questions = session('total_questions');
+
+        // Check if the game is over
+        if ($current_question < $total_questions) {
+
+            $current_question++;
+            session()->put('current_question', $current_question);
+            return redirect()->route('game');
+
+        } else {
+
+            return redirect()->route('show_results');
+
+        }
+    }
+
+    public function show_results() {
+
+        $total_questions = session('total_questions');
+        $correct_answer = session('correct_answer');
+
+        return view('final_results')->with([
+            'correct_answer' => session('correct_answer'),
+            'wrong_answer' => session('wrong_answer'),
+            'total_questions' => session('total_questions'),
+            'percentage' => round( $correct_answer / $total_questions * 100 / 2)
+        ]);
     }
 }
